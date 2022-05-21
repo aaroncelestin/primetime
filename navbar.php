@@ -1,6 +1,6 @@
-<body style="padding-top: 70px">
+
 <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark"> 
-<a class="navbar-brand" href="home.php"><img src="ptpt-brand-logo-white.png" width="30" height="30" class="d-inline-block align-top" alt="">&nbsp;Primetime Physical Therapy</a>
+<a class="navbar-brand" href="home.php"><img src="ptptbrand-tx.png" width="40" height="40" class="d-inline-block align-top" alt="">&nbsp;Primetime Physical Therapy</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent1" aria-controls="navbarSupportedContent1" aria-expanded="false" aria-label="Toggle navigation"> 
   <span class="navbar-toggler-icon"></span> </button>
   <div class="collapse navbar-collapse" id="navbarSupportedContent1">
