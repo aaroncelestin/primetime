@@ -17,6 +17,12 @@ const FORMATTED_ERRORS = [
 ];
 
 
+/**
+*
+* Cleans text input and returns string without slashes, htmlchars and whitespaces
+* @param string $data
+* @return string
+*/
 function clean_text(string $data):string {
     $data = trim($data);
     $data = stripslashes($data);
@@ -26,7 +32,10 @@ function clean_text(string $data):string {
 
 
 /**
+ * 
  * Removes any English alphabet chars from an input string and returns an int
+ * @param string $data
+ * return int
  */
 function clean_number(string $data):int {
     $data = trim($data);
@@ -84,3 +93,37 @@ function format_flash (array $errmsg_array, string $error_type, string $field) {
 }
 
 
+/**
+* Return true if a password is secure
+* @param array $data
+* @param string $field
+* @return bool
+*/
+function is_secure(array $data, string $field): bool
+{
+    if (!isset($data[$field])) {
+        return false;
+    }
+    $pattern = "#.*^(?=.{8,64})(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W).*$#";
+    return preg_match($pattern, $data[$field]);
+}
+
+/**
+* Return true if the $value is unique in the column of a table
+* @param array $data
+* @param string $field
+* @param string $table
+* @param string $column
+* @return bool
+*/
+function is_unique(array $data, string $field, string $table, string $column): bool
+{
+    if (!isset($data[$field])) {
+        return true;
+    }
+    $sql = "SELECT $column FROM $table WHERE $column = :value";
+    $stmt = db()->prepare($sql);
+    $stmt->bindValue(":value", $data[$field]);
+    $stmt->execute();
+    return $stmt->fetchColumn() === false;
+}
