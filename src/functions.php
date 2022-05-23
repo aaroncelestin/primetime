@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
+require __DIR__. '/clean.php';
 error_reporting(E_ALL | E_WARNING | E_NOTICE);
 ini_set('display_errors', TRUE);
 const FLASH = 'FLASH_MESSAGES';
@@ -65,7 +66,7 @@ function db(): PDO
 function login(string $username, string $password): bool
 {
     $user = find_user_by_username($username);
-    if ($user && is_user_active($user) && password_verify($password, $user['password'])) {
+    if ($user && is_user_active($username) && password_verify($password, $user['password'])) {
         // prevent session fixation attack
         session_regenerate_id();
         // set username in the session
@@ -80,6 +81,41 @@ function login(string $username, string $password): bool
         return false;
     }
 }
+
+/**
+ * Takes either an email or username, checks if either exists
+ * 
+ * @param string $username
+ * @param string $email
+ * @return bool
+ */
+function is_user (string $username ="", string $email =""):bool
+{
+    $db = db();
+    $stmt = $db->prepare("SELECT username,email FROM ptusers WHERE email =:email 
+        or username =:username");
+    $stmt->bindValue(':username', $username);
+    $stmt->bindValue(':email', $email);
+    $stmt->execute();
+    if((isset($row['email']) == $email) or (find_user_by_username($username)))
+        return true;
+    else {
+        return false;
+    }
+}
+
+
+function is_email (string $email): bool {
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+
+
+
+     
+  
+        
+        
+
 
 
 /**
@@ -117,7 +153,13 @@ function register_user(string $email, string $username, string $password): bool
     return $statement->execute();
 }
 
-
+/**
+ * Change users password of email with new password
+ * 
+ * @param string $email
+ * @param string $new_password
+ * @return bool
+ */
 function change_password (string $email, string $new_password) :bool {
     $user = find_user_by_email($email);
     if($user == null){
@@ -142,13 +184,12 @@ function find_user_by_username(string $username)
     $sql = 'SELECT username, password, is_activated, email
             FROM ptusers
             WHERE username=:username';
-
     $statement = db()->prepare($sql);
     $statement->bindValue(':username', $username);
     $statement->execute();
-
     return $statement->fetch(PDO::FETCH_ASSOC);
 }
+
 
 /** Get user from table by user_id
  * 
@@ -188,15 +229,15 @@ function find_user_by_email(string $email)
 }
 
 
-
 /**
  * Find if user is_activated is set to ON or 1
  * 
  * @param array $user
  * @return int $is_activated
  */
-function is_user_active($user)
+function is_user_active(string $username)
 {
+    $user = find_user_by_username($username);
     return (int)$user['is_activated'] === 1;
 }
 
@@ -211,37 +252,35 @@ function is_user_active($user)
  * @return bool 
  */
 function delete_user_by_id(int $user_id, int $is_activated=0)
-{
-    
+{  
     $sql = 'DELETE FROM ptusers
             WHERE user_id =:user_id and is_activated=:is_activated';
-
     $statement = db()->prepare($sql);
     $statement->bindValue(':user_id', $user_id, PDO::PARAM_INT);
     $statement->bindValue(':is_activated', $is_activated, PDO::PARAM_INT);
-
     return $statement->execute();
 }
 
 
-
-function find_unverified_user(string $activation_code, string $email)
+/**
+ * Find and delete inactivated user
+ * 
+ * @param string $activation_code
+ * @param string $email
+ * @return void
+ */
+function find_unverified_user(string $activation_code, string $email):void
 {
-
     $sql = 'SELECT user_id, activation_code, activation_expiry < now() as expired
             FROM ptusers
             WHERE is_activated = 0 AND email=:email';
-
     $statement = db()->prepare($sql);
-
     $statement->bindValue(':email', $email);
     $statement->execute();
-
     $user = $statement->fetch(PDO::FETCH_ASSOC);
-
     if ($user) {
         // already expired, delete the in active user with expired activation code
-        if ((int)$user['expired'] === 1) {
+        if ($user['is_activated'] === 0) {
             delete_user_by_id($user['user_id']);
             return null;
         }
@@ -250,17 +289,12 @@ function find_unverified_user(string $activation_code, string $email)
             return $user;
         }
     }
-
     return null;
 }
 
 
-
-
-
-
 /**
- * Display a view
+ * Display a view of HTML page sections for reuse
  *
  * @param string $filename
  * @param array $data
