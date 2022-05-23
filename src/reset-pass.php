@@ -23,11 +23,13 @@ if(isset($_POST['reset-pass-btn'])){
             session_destroy();//wipe all session variables
             flush();//flush output buffer
             header("refresh:5;url=login.php");//wait 5 seconds and redirect to login
+            die();
             }
         else {//passwords don't match, refresh page
             echo ("Passwords do not match. Please check your entries and try again.");
             flush();
-            header("refresh:5;url=reset-pass.php");            
+            header("refresh:5;url=reset-pass.php");
+            die();
         }
     }    
     else {//email or valid code from get request doesnt match records in db, show generic error and halt
@@ -35,6 +37,7 @@ if(isset($_POST['reset-pass-btn'])){
         session_destroy();
         flush();
         header("refresh:5;url=send-reset.php");
+        die();
     }    
 } 
 
