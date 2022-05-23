@@ -66,31 +66,43 @@ function clean_number(string $data):int {
     return $num;
 }
 
+
 /**
  * Show flash message of DEFAULT_ERRORS with given $particular_error index
  * returns HTML string with div alert
  */
-function flash (string $particular_error, string $field): string  {
-    
-        $msg = format_flash(FORMATTED_ERRORS, $particular_error, $field);
-        $error_div = '<div class="alert alert-warning alert-dismissible fade show"><?.$msg.?></div>';
-    
-    return $error_div;
+function flash (string $particular_error, string $field ="", int $scalar1 =null, int $scalar2 =null, int $scalar3 =null): string  {
+        $msg = format_flash(FORMATTED_ERRORS, $particular_error, $field, $scalar1, $scalar2, $scalar3);
+        return '<div class="alert alert-warning alert-dismissible fade show"><?.$msg.?></div>';
 }
+
+
 
 /**
  * Format and fill flash message of given type with field and scalar using sprintf
  * For example: This $field must be $scalar long
  * 
  * @param array $errmsg_array global array of msgs
- * @param string $error_type index of array
+ * @param string $error_type index of array of msgs
  * @param string $field given by caller
+ * @param int $scalars... numerical values for placeholders in error messages
  * @return string formatted
  */
-function format_flash (array $errmsg_array, string $error_type, string $field) {
+function format_flash (array $errmsg_array, string $error_type, string $field ="", int $scalar1 =null, int $scalar2 =null, int $scalar3 =null) {
     $temp_message = $errmsg_array[$error_type];
-    return sprintf($temp_message, $field); 
-}
+    if ($scalar1 != null){ 
+        return sprintf($temp_message, $field, $scalar1); 
+    }
+    else if ($scalar1 && $scalar2 != null) {
+        return sprintf($temp_message, $field, $scalar1, $scalar2); 
+    }
+    else if ($scalar1 && $scalar2 && $scalar3 != null) {
+        return sprintf($temp_message, $field, $scalar1, $scalar2, $scalar3); 
+    }
+    else
+        return sprintf($temp_message, $field);
+} 
+
 
 
 /**
