@@ -104,18 +104,15 @@ function is_user (string $username ="", string $email =""):bool
     }
 }
 
-
+/**
+ * Checks if email has proper formatting
+ * 
+ * @param string $email
+ * @pram return bool 
+ */
 function is_email (string $email): bool {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
-
-
-
-     
-  
-        
-        
-
 
 
 /**
@@ -137,6 +134,7 @@ function register_user(string $email, string $username, string $password): bool
 	//countdown user id's from number of rows e.g.: total_rows===3, id 999999999999-3
     $user_id = 9999999999;//set upper limit of ID numbers
 	$user_id = $user_id - $total_rows;
+    $valid_code = "";//unique codes for password resets and account recovery
     $activation_expiry = 24  * 60 * 60; //code expires after 24 hours
     $is_admin = false; //not an admin user, admin users will be assigned by webadmin
     $is_activated = 0; //create and add user not yet activated    
@@ -148,13 +146,14 @@ function register_user(string $email, string $username, string $password): bool
     $statement->bindValue(':email', $email);
     $statement->bindValue(':password', password_hash($password, PASSWORD_BCRYPT));
     $statement->bindValue(':is_admin', (int)$is_admin, PDO::PARAM_INT);
-    $statement->bindValue(':is_activated', $is_activated, PDO::PARAM_INT);
+    $statement->bindValue(':is_activated', (int)$is_activated, PDO::PARAM_INT);
+    $statement->bindValue(':valid_code', $valid_code);
     $statement->bindValue(':activation_expiry', date('Y-m-d H:i:s',  time() + $activation_expiry));
     return $statement->execute();
 }
 
 /**
- * Change users password of email with new password
+ * Change users password of email with new password and delete validation code sent from reset password routine
  * 
  * @param string $email
  * @param string $new_password
@@ -166,12 +165,32 @@ function change_password (string $email, string $new_password) :bool {
         return false;
     }
     else {
-        $sql = 'UPDATE ptusers SET password = :new_password WHERE username =:username';
+        $deleted_code = "";
+        $sql = 'UPDATE ptusers SET password = :new_password, valid_code = :deleted_code WHERE username =:username';
         $chpw_sql = db()->prepare($sql);
         $chpw_sql->bindValue(':password', password_hash($new_password, PASSWORD_BCRYPT));
+        $chpw_sql->bindValue(':valid_code', $deleted_code);
         return $chpw_sql->execute();
     }
 }
+
+
+/**
+ * For password resets, get valid code if user had password reset requested, returns empty string if not set
+ * 
+ * @param string $email
+ * @return string
+ */
+function get_valid_code (string $email):string
+{
+    $codesql = "SELECT valid_code FROM ptusers WHERE email=:email";
+    $codedb = db()->prepare($codesql);
+    $codedb->bindValue(':username', $email);
+    $codedb->execute();
+    $user = $codedb->fetch(PDO::FETCH_ASSOC);
+    return $user['valid_code'];
+}
+
 
 /**
  * Get user from table by username
@@ -386,15 +405,21 @@ function generate_activation_code(): string
 }
 
 /**
- * Setup reset password email and then refresh the page after 30 seconds
+ * Setup reset password email, generate reset code for user and then refresh the page after 30 seconds
  * 
  * @param array $user
  * @return void
  */
 function setup_reset (array $user): void
 {
-    $code = generate_activation_code();
-    send_reset_email($user['email'], $code);
+    $username = $user['username'];
+    $new_code = generate_activation_code();
+    $codesql = 'UPDATE ptusers SET valid_code = :new_code WHERE username =:username';
+    $stpw_sql = db()->prepare($codesql);
+    $stpw_sql->bindValue(':username', $username);
+    $stpw_sql->bindValue(':valid_code', $new_code);
+    $stpw_sql->execute();
+    send_reset_email($user['email'], $new_code);
     echo ("Click the link in your email to reset your password");
     flush();
     header("refresh:30;url=login.php",302);
