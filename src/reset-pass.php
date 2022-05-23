@@ -6,22 +6,39 @@ view('primetime-logo');
 
 session_start();
 if (is_get_request()){
-    [$inputs, $errors] = filter($_GET, [
-        'email' => 'string | required | email',
-        'validation_code' => 'string | required'
-    ]);
-    $u_email = $_REQUEST['email'];
-    if(isset($_POST['reset-pass-btn'])){
-        $new_password = $_REQUEST['password'];
-        $confirm_password = $_REQUEST['password2'];
+    //save get request info for checking 
+    $code =$_GET['validation_code'];
+    $email =$_GET['email'];
+}    
+if(isset($_POST['reset-pass-btn'])){
+    $new_password = $_REQUEST['password'];
+    $confirm_password = $_REQUEST['password2'];
+    //check if user email exists in db and the code from get matches one found in db
+    if (is_user($email) && get_valid_code($email) === $code){
+        //check if passwords same        
         if($new_password === $confirm_password) {
-            change_password($u_email, $password);
+            //change password which resets valid_code in db back to empty string
+            change_password($email, $password);
             echo ("Your password has been reset. You will be redirected to login page.");
-            header("refresh:5;url=login.php");
-            session_destroy();
+            session_destroy();//wipe all session variables
+            flush();//flush output buffer
+            header("refresh:5;url=login.php");//wait 5 seconds and redirect to login
+            }
+        else {//passwords don't match, refresh page
+            echo ("Passwords do not match. Please check your entries and try again.");
+            flush();
+            header("refresh:5;url=reset-pass.php");            
         }
-    }
-}
+    }    
+    else {//email or valid code from get request doesnt match records in db, show generic error and halt
+        echo ("There was an error processing your request. Please check your email and try again.");
+        session_destroy();
+        flush();
+        header("refresh:5;url=send-reset.php");
+    }    
+} 
+
+
 ?>
     <form action="reset_pass.php" method="post">
         <h1>Please enter a new password.</h1>
@@ -41,5 +58,3 @@ if (is_get_request()){
 
         <button type="submit" id ="reset-pass-btn">Submit</button>
     </form>
-
-
