@@ -3,7 +3,7 @@ namespace Primetime;
 require __DIR__ . '/src/functions.php';
 view('login-header');
 view('primetime-logo');
-
+ob_start();
 session_start();
 if(isset($_REQUEST['email-reset-btn'])){
 
@@ -17,12 +17,16 @@ if(isset($_REQUEST['email-reset-btn'])){
         else
         {
             echo ("Email or username not found. Please register or try again.");
+            flush();
             header("refresh:5;url=send-reset.php");
+            die;
         }
     }       
     else if(empty($_REQUEST['email']) || empty($_REQUEST['username'])){
         echo ("Please enter an email or username");
+        flush();
         header("refresh:5;url=send-reset.php");
+        die;
     }
    
 }
