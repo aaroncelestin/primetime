@@ -282,13 +282,13 @@ function delete_user_by_id(int $user_id, int $is_activated=0)
 
 
 /**
- * Find and delete inactivated user
+ * Find and delete inactivated user, return true if succesful, false if failed
  * 
  * @param string $activation_code
  * @param string $email
- * @return void
+ * @return bool
  */
-function find_unverified_user(string $activation_code, string $email):void
+function find_unverified_user(string $activation_code, string $email):bool
 {
     $sql = 'SELECT user_id, activation_code, activation_expiry < now() as expired
             FROM ptusers
@@ -300,15 +300,12 @@ function find_unverified_user(string $activation_code, string $email):void
     if ($user) {
         // already expired, delete the in active user with expired activation code
         if ($user['is_activated'] === 0) {
-            delete_user_by_id($user['user_id']);
-            return null;
+            return delete_user_by_id($user['user_id']);  
         }
-        // verify the password
-        if (password_verify($activation_code, $user['activation_code'])) {
-            return $user;
-        }
-    }
-    return null;
+       else {
+           return false;
+       }
+    }   
 }
 
 
@@ -457,7 +454,6 @@ function send_reset_email(string $email, string $validation_code): void
             Hi, 
             Please click the following link to reset your password:
             $validation_link
-
             If you did not request a password reset or have received this message in error, please contact the office.
             MESSAGE;
     // email header
