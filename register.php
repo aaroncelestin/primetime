@@ -7,52 +7,47 @@ require __DIR__ . '/src/register-process.php';
  view('primetime-logo');
 ?>
 <div class="text-center">
-<form action="register.php" method="post" class="form-floating mx-auto mb-3">
-    <h1>Sign Up</h1>
+<form name="register" id="register" action="register.php" method="post" class="form-floating mx-auto mb-3 needs-vali>    <h1>Sign Up</h1>
 
     <div>
         <label for="username">Username:</label>
-        <input type="text" name="username" id="username" value="<?= $inputs['username'] ?? '' ?>"
-               class="<?= error_class($errors, 'username') ?>">
-        <small><?= $errors['username'] ?? '' ?></small>
+        <input type="text" name="username" id="username" class="form-control">
+        <div class ="invalid-feedback">Please enter a username</div>
+        <small></small>
+
     </div>
 
     <div>
-        <label for="email">Email:</label>
-        <input type="email" name="email" id="email" value="<?= $inputs['email'] ?? '' ?>"
-               class="<?= error_class($errors, 'email') ?>">
-        <small><?= $errors['email'] ?? '' ?></small>
+    <label for="email">Email:</label>
+        <input type="text" name="email" id="email" class="form-control" required>
+        <div class ="invalid-feedback">Please enter a valid email</div>
+        <small></small>
     </div>
 
     <div>
         <label for="password">Password:</label>
-        <input type="password" name="password" id="password" value="<?= $inputs['password'] ?? '' ?>"
-               class="<?= error_class($errors, 'password') ?>">
-        <small><?= $errors['password'] ?? '' ?></small>
+        <input type="text" name="email" id="password" class="form-control" required>
+        <div class ="invalid-feedback">Please enter a valid password</div>
+        <small></small>
     </div>
 
     <div>
         <label for="password2">Confirm Password:</label>
-        <input type="password" name="password2" id="password2" value="<?= $inputs['password2'] ?? '' ?>"
-               class="<?= error_class($errors, 'password2') ?>">
-        <small><?= $errors['password2'] ?? '' ?></small>
+        <input type="text" name="password2" id="password2" class="form-control" required>
+        <div class ="invalid-feedback">Please enter your password again</div>
+        <small></small>
     </div>
 
     <div>
         <label for="agree">
-            <input type="checkbox" name="agree" id="agree" value="checked" <?= $inputs['agree'] ?? '' ?> /> I
-            agree
-            with the
-            <a href="#" title="term of services">term of services</a>
-        </label>
-        <small><?= $errors['agree'] ?? '' ?></small>
-    </div>
-
-    <button type="submit">Register</button>
-
-    <p class="mt-5 mb-1 text-muted text-center">Already a member? <a href="login.php">Login here</a></p>
-    <p class="mt-5 mb-1 text-muted text-center">Forgot password? <a href="send-reset.php">Click here to reset.</a></p>
-
+            <input type="checkbox" name="agree" id="agree" value="checked" required>
+           I agree with the <a href="#" title="term of services">term of services</a>
+        </label><small></small>
+    <button class="btn btn-primary" type="submit">Register</button>
+</div>
+    <p class="mt-1 mb-1 text-muted text-center">Already a member? <a href="login.php">Login here</a></p>
+    <p class="mt-1 mb-1 text-muted text-center">Forgot password? <a href="send-reset.php">Click here to reset.</a></>
 </form>
 
 <?php view('footer') ?>
+
