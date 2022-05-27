@@ -90,18 +90,24 @@ function login(string $username, string $password): bool
  * @return bool
  */
 function is_user (string $username ="", string $email =""):bool
-{
-    $db = db();
-    $stmt = $db->prepare("SELECT username,email FROM ptusers WHERE email =:email 
-        or username =:username");
-    $stmt->bindValue(':username', $username);
-    $stmt->bindValue(':email', $email);
-    $stmt->execute();
-    if((isset($row['email']) == $email) or (find_user_by_username($username)))
-        return true;
-    else {
-        return false;
+{	
+    $res = 0;	
+    
+    if((int)$username != 0){
+	$db = db();
+        $stmt = $db->prepare("SELECT username FROM ptusers WHERE username =:username");
+    	$stmt->bindValue(':username', $username);
+    	if($stmt->execute(PDO::FETCH_ASSOC))
+		$res = $res + 1;
     }
+    if((int)$email != 0){
+	$db = db();
+        $stmt = $db->prepare("SELECT email FROM ptusers WHERE email =:email");
+    	$stmt->bindValue(':email', $email);
+    	if($stmt->execute())
+		$res = $res + 1;
+    }
+    return $res > 0;
 }
 
 /**
